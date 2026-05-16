@@ -154,8 +154,13 @@ export function DesignFilesPanel({
   );
   const rangeStart = filteredFiles.length === 0 ? 0 : safePage * effectivePageSize + 1;
   const rangeEnd = Math.min((safePage + 1) * effectivePageSize, filteredFiles.length);
-  const allPageSelected = pageFiles.every((f) => selected.has(f.name));
+  const allPageSelected = pageFiles.length > 0 && pageFiles.every((f) => selected.has(f.name));
   const somePageSelected = !allPageSelected && pageFiles.some((f) => selected.has(f.name));
+  const filteredSelectedCount = useMemo(
+    () => filteredFiles.reduce((n, f) => (selected.has(f.name) ? n + 1 : n), 0),
+    [filteredFiles, selected],
+  );
+  const allFilteredSelected = filteredFiles.length > 0 && filteredSelectedCount === filteredFiles.length;
 
   useEffect(() => {
     setPage(0);
@@ -914,7 +919,7 @@ export function DesignFilesPanel({
                       {t('designFiles.pageInfo', { start: rangeStart, end: rangeEnd, total: filteredFiles.length })}
                     </span>
                     <div className="df-select-bar">
-                      {filteredFiles.length > 0 && selected.size < filteredFiles.length ? (
+                      {filteredFiles.length > 0 && !allFilteredSelected ? (
                         <button type="button" className="df-select-all" onClick={selectAllFiles}>
                           {t('designFiles.selectAll', { n: filteredFiles.length })}
                         </button>
