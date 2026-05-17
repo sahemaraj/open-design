@@ -35,7 +35,8 @@ const GITIGNORE_CONTENTS = `# Live-artifact churn (per audit §4 item 2)
 *.mp3
 
 # Trash directory (separate from git, see design §6)
-.trash/
+# Daemon sanitizeName strips leading dots → actual on-disk dir is _trash/.
+_trash/
 `;
 
 export interface CommitOptions {

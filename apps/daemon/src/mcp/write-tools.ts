@@ -275,22 +275,30 @@ async function handleSoftDelete(ctx: McpContext, args: DeleteArgs): Promise<unkn
   assertNotBaseDirProject(project);
 
   // Per design §6 the daemon's rename endpoint creates the target
-  // parent directory via mkdir -p (audit §3.4), so `.trash/` materializes
-  // lazily on the first soft-delete without a separate seed write.
-  const trashPath = computeTrashPath(path);
+  // parent directory via mkdir -p (audit §3.4), so the trash directory
+  // materializes lazily on the first soft-delete without a separate seed write.
+  //
+  // We request `.trash/<ts>-<name>` but the daemon's sanitizeName strips
+  // leading dots per segment (projects.ts sanitizeName), so the actual
+  // on-disk path becomes `_trash/<ts>-<name>`. The locally-computed value
+  // is only a request; the authoritative trash_path is echoed back by the
+  // daemon as file.path (mirrors rename_file's daemon-echo pattern).
+  const requestedTrashPath = computeTrashPath(path);
 
+  let file: { path?: unknown } | undefined;
   try {
-    await callDaemon(ctx, {
+    const resp = (await callDaemon(ctx, {
       method: 'POST',
       path: `/api/projects/${encodeURIComponent(projectId)}/files/rename`,
-      body: { from: path, to: trashPath },
+      body: { from: path, to: requestedTrashPath },
       notFoundCode: 'FILE_NOT_FOUND',
-    });
+    })) as { file?: { path?: unknown } } | null;
+    file = resp?.file ?? undefined;
   } catch (err) {
     if (isMcpWriteError(err) && err.error_code === 'DAEMON_5XX') {
       const [origExists, trashExists] = await Promise.all([
         probeFileExists(ctx, projectId, path),
-        probeFileExists(ctx, projectId, trashPath),
+        probeFileExists(ctx, projectId, requestedTrashPath),
       ]);
       return enrichWithRecovery(err, {
         original_exists: origExists,
@@ -300,8 +308,17 @@ async function handleSoftDelete(ctx: McpContext, args: DeleteArgs): Promise<unkn
     throw err;
   }
 
+  if (typeof file?.path !== 'string' || file.path.length === 0) {
+    throw makeError(
+      'DAEMON_5XX',
+      `soft_delete_file: daemon rename response missing file.path (requested ${requestedTrashPath})`,
+      { details: { project_id: projectId, requested_trash_path: requestedTrashPath } },
+    );
+  }
+  const actualTrashPath = file.path;
+
   const commit = await safeCommit(project, 'soft_delete_file', path);
-  return { ok: true, trash_path: trashPath, ...commitFields(commit) };
+  return { ok: true, trash_path: actualTrashPath, ...commitFields(commit) };
 }
 
 async function safeCommit(
