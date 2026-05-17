@@ -124,17 +124,15 @@ async function runGit(cwd: string, args: string[]): Promise<GitResult> {
   } catch (err) {
     const e = err as NodeJS.ErrnoException & { stdout?: string; stderr?: string; code?: unknown };
     if (e.code === 'ENOENT') {
-      throw makeError('NOT_IMPLEMENTED', 'git binary not available', {
+      throw makeError('GIT_UNAVAILABLE', 'git binary not available', {
         details: { projectDir: cwd },
       });
     }
-    // K1 observation: design §5 says git commit failures should "log a warning,
-    // don't error the MCP tool". That semantic belongs to the caller in
-    // write-tools.ts (HRG-16c). Here we propagate as a plain Error and let the
-    // caller decide. errors.ts has no dedicated code for local-git failure.
     const exitCode = typeof e.code === 'number' ? e.code : -1;
-    throw new Error(
-      `git ${args.join(' ')} failed (exit ${exitCode}) in ${cwd}: ${e.stderr || e.message}`,
+    throw makeError(
+      'GIT_COMMIT_FAILED',
+      `git ${args.join(' ')} failed (exit ${exitCode}) in ${cwd}`,
+      { details: { projectDir: cwd, args, exitCode, stderr: e.stderr ?? '' } },
     );
   }
 }
@@ -150,7 +148,7 @@ async function runGitAllowExitCode(
   } catch (err) {
     const e = err as NodeJS.ErrnoException & { stdout?: string; stderr?: string; code?: unknown };
     if (e.code === 'ENOENT') {
-      throw makeError('NOT_IMPLEMENTED', 'git binary not available', {
+      throw makeError('GIT_UNAVAILABLE', 'git binary not available', {
         details: { projectDir: cwd },
       });
     }
@@ -158,8 +156,10 @@ async function runGitAllowExitCode(
     if (allowed.includes(exitCode)) {
       return { stdout: e.stdout ?? '', stderr: e.stderr ?? '', code: exitCode };
     }
-    throw new Error(
-      `git ${args.join(' ')} failed (exit ${exitCode}) in ${cwd}: ${e.stderr || e.message}`,
+    throw makeError(
+      'GIT_COMMIT_FAILED',
+      `git ${args.join(' ')} failed (exit ${exitCode}) in ${cwd}`,
+      { details: { projectDir: cwd, args, exitCode, stderr: e.stderr ?? '' } },
     );
   }
 }

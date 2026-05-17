@@ -12,6 +12,8 @@ export type McpWriteErrorCode =
   | 'DAEMON_5XX'
   | 'DAEMON_4XX'
   | 'DAEMON_UNREACHABLE'
+  | 'GIT_COMMIT_FAILED'
+  | 'GIT_UNAVAILABLE'
   | 'NOT_IMPLEMENTED';
 
 export interface McpWriteError {
