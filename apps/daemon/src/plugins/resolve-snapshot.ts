@@ -135,7 +135,47 @@ function pickPluginFields(body: Record<string, unknown> | null | undefined) {
   return { pluginId, snapshotId, pluginInputs, grantCaps, locale };
 }
 
+function rowExists(db: SqliteDb, table: 'projects' | 'conversations', id: string): boolean {
+  const row = db.prepare(`SELECT 1 AS x FROM ${table} WHERE id = ? LIMIT 1`).get(id) as
+    | { x: number }
+    | undefined;
+  return !!row;
+}
+
 export function resolvePluginSnapshot(input: ResolveSnapshotInput): ResolveSnapshotResult {
+  // Pre-flight FK check: the snapshot row carries FKs to projects(id) and
+  // conversations(id). If the caller hands us an id that does not exist
+  // (cross-DB stale id, deleted row), SQLite would throw
+  // SQLITE_CONSTRAINT_FOREIGNKEY mid-INSERT. Catch it here so the caller
+  // gets a clean 404 envelope instead of a 500 / daemon crash.
+  if (input.projectId && !rowExists(input.db, 'projects', input.projectId)) {
+    return {
+      ok: false,
+      status: 404,
+      exitCode: 65,
+      body: {
+        error: {
+          code: 'project-not-found',
+          message: `Project ${input.projectId} does not exist in this daemon's database.`,
+          data: { projectId: input.projectId },
+        },
+      },
+    };
+  }
+  if (input.conversationId && !rowExists(input.db, 'conversations', input.conversationId)) {
+    return {
+      ok: false,
+      status: 404,
+      exitCode: 65,
+      body: {
+        error: {
+          code: 'conversation-not-found',
+          message: `Conversation ${input.conversationId} does not exist in this daemon's database.`,
+          data: { conversationId: input.conversationId },
+        },
+      },
+    };
+  }
   const fields = pickPluginFields(input.body);
   // If the caller didn't name a plugin / snapshot in the body but a
   // snapshot is already pinned to the project (set by a prior project /
