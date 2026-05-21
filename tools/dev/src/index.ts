@@ -72,6 +72,9 @@ type CliOptions = ToolDevOptions & {
 
 const TOOLS_DEV_PARENT_PID_ENV = SIDECAR_ENV.TOOLS_DEV_PARENT_PID;
 
+const DEFAULT_DAEMON_PORT = 17456;
+const DEFAULT_WEB_PORT = 17573;
+
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -408,8 +411,8 @@ async function spawnDaemonRuntime(
   options: CliOptions,
   spawnOptions: { requireDesktopAuth?: boolean } = {},
 ): Promise<{ pid: number }> {
-  const daemonPort = parsePortOption(options.daemonPort, "--daemon-port");
-  const webPort = parsePortOption(options.webPort, "--web-port");
+  const daemonPort = parsePortOption(options.daemonPort, "--daemon-port") ?? DEFAULT_DAEMON_PORT;
+  const webPort = parsePortOption(options.webPort, "--web-port") ?? DEFAULT_WEB_PORT;
   const logHandle = await openAppLog(config, APP_KEYS.DAEMON);
 
   try {
@@ -445,7 +448,7 @@ async function spawnWebRuntime(config: ToolDevConfig, options: CliOptions): Prom
   const daemonStatus = await waitForDaemonRuntime(runtimeLookup(config));
   if (daemonStatus.url == null) throw new Error("daemon must be running before web starts");
 
-  const webPort = parsePortOption(options.webPort, "--web-port");
+  const webPort = parsePortOption(options.webPort, "--web-port") ?? DEFAULT_WEB_PORT;
   const daemonPort = urlPort(daemonStatus.url);
   const logHandle = await openAppLog(config, APP_KEYS.WEB);
 
@@ -577,7 +580,7 @@ async function startDaemon(
   options: CliOptions,
   startOptions: { requireDesktopAuth?: boolean } = {},
 ) {
-  const daemonPort = parsePortOption(options.daemonPort, "--daemon-port");
+  const daemonPort = parsePortOption(options.daemonPort, "--daemon-port") ?? DEFAULT_DAEMON_PORT;
   const existing = await inspectDaemonRuntime(runtimeLookup(config));
   if (existing?.url != null && statusMatchesForcedPort(existing.url, daemonPort)) {
     return { app: APP_KEYS.DAEMON, created: false, logPath: config.apps.daemon.latestLogPath, status: existing };
@@ -615,7 +618,7 @@ async function startDaemon(
 }
 
 async function startWeb(config: ToolDevConfig, options: CliOptions) {
-  const webPort = parsePortOption(options.webPort, "--web-port");
+  const webPort = parsePortOption(options.webPort, "--web-port") ?? DEFAULT_WEB_PORT;
   const existing = await inspectWebRuntime(runtimeLookup(config));
   if (existing?.url != null && statusMatchesForcedPort(existing.url, webPort)) {
     return { app: APP_KEYS.WEB, created: false, logPath: config.apps.web.latestLogPath, status: existing };
