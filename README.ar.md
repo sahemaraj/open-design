@@ -32,8 +32,8 @@
   <a href="https://github.com/nexu-io/open-design/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/nexu-io/open-design?style=flat-square&color=blueviolet&label=release&include_prereleases&display_name=tag" /></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" /></a>
   <a href="#الوكلاء-المدعومون"><img alt="Agents" src="https://img.shields.io/badge/agents-16%20CLIs%20%2B%20BYOK%20proxy-black?style=flat-square" /></a>
-  <a href="#أنظمة-التصميم"><img alt="Design systems" src="https://img.shields.io/badge/design%20systems-72-orange?style=flat-square" /></a>
-  <a href="#الـ-skills"><img alt="Skills" src="https://img.shields.io/badge/skills-31-teal?style=flat-square" /></a>
+  <a href="#أنظمة-التصميم"><img alt="Design systems" src="https://img.shields.io/badge/design%20systems-149-orange?style=flat-square" /></a>
+  <a href="#الـ-skills"><img alt="Skills" src="https://img.shields.io/badge/skills-131-teal?style=flat-square" /></a>
   <a href="https://discord.gg/qhbcCH8Am4"><img alt="Discord" src="https://img.shields.io/badge/discord-انضم-5865F2?style=flat-square&logo=discord&logoColor=white" /></a>
   <a href="QUICKSTART.md"><img alt="Quickstart" src="https://img.shields.io/badge/quickstart-3%20commands-green?style=flat-square" /></a>
 </p>
@@ -332,6 +332,8 @@ pnpm tools-dev run web
 ```
 
 متطلّبات البيئة: Node `~24` و pnpm `10.33.x`. أدوات `nvm`/`fnm` اختيارية فقط؛ إن استخدمت إحداها فشغّل `nvm install 24 && nvm use 24` أو `fnm install 24 && fnm use 24` قبل `pnpm install`.
+
+يمكن لمستخدمي ويندوز اتباع [`docs/windows-troubleshooting.md`](docs/windows-troubleshooting.md) للحصول على مسار التثبيت الأصلي ومُشغّل صغير بنقرة مزدوجة.
 
 لتشغيل سطح المكتب / الخلفية، إعادة التشغيل بمنافذ ثابتة، وفحوص dispatcher توليد الوسائط (`OD_BIN`، `OD_DAEMON_URL`، `apps/daemon/dist/cli.js`) راجع [`QUICKSTART.md`](QUICKSTART.md).
 

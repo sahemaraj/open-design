@@ -30,8 +30,8 @@
   <a href="https://github.com/nexu-io/open-design/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/nexu-io/open-design?style=flat-square&color=blueviolet&label=release&include_prereleases&display_name=tag" /></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" /></a>
   <a href="#agentes-de-código-suportados"><img alt="Agents" src="https://img.shields.io/badge/agents-16%20CLIs%20%2B%20BYOK%20proxy-black?style=flat-square" /></a>
-  <a href="#design-systems"><img alt="Design systems" src="https://img.shields.io/badge/design%20systems-72-orange?style=flat-square" /></a>
-  <a href="#skills"><img alt="Skills" src="https://img.shields.io/badge/skills-31-teal?style=flat-square" /></a>
+  <a href="#design-systems"><img alt="Design systems" src="https://img.shields.io/badge/design%20systems-149-orange?style=flat-square" /></a>
+  <a href="#skills"><img alt="Skills" src="https://img.shields.io/badge/skills-131-teal?style=flat-square" /></a>
   <a href="https://discord.gg/qhbcCH8Am4"><img alt="Discord" src="https://img.shields.io/badge/discord-entrar-5865F2?style=flat-square&logo=discord&logoColor=white" /></a>
   <a href="QUICKSTART.pt-BR.md"><img alt="Quickstart" src="https://img.shields.io/badge/quickstart-3%20commands-green?style=flat-square" /></a>
 </p>
@@ -330,6 +330,8 @@ pnpm tools-dev run web
 ```
 
 Requisitos de ambiente: Node `~24` e pnpm `10.33.x`. `nvm`/`fnm` são apenas helpers opcionais; se você usa um, rode `nvm install 24 && nvm use 24` ou `fnm install 24 && fnm use 24` antes do `pnpm install`.
+
+Usuários de Windows podem seguir [`docs/windows-troubleshooting.md`](docs/windows-troubleshooting.md) para o caminho de setup nativo e um pequeno launcher de duplo clique.
 
 Para startup desktop/background, restart com porta fixa e checagens do dispatcher de geração de mídia (`OD_BIN`, `OD_DAEMON_URL`, `apps/daemon/dist/cli.js`), veja [`QUICKSTART.pt-BR.md`](QUICKSTART.pt-BR.md).
 

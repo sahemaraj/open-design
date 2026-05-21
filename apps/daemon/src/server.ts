@@ -9601,15 +9601,30 @@ export async function startServer({
           }
         }
       }
-      const resolved = resolvePluginSnapshot({
-        db,
-        body: runResolveBody,
-        projectId: req.body.projectId,
-        conversationId: typeof req.body.conversationId === 'string'
-          ? req.body.conversationId
-          : null,
-        registry: registryView,
-      });
+      let resolved;
+      try {
+        resolved = resolvePluginSnapshot({
+          db,
+          body: runResolveBody,
+          projectId: req.body.projectId,
+          conversationId: typeof req.body.conversationId === 'string'
+            ? req.body.conversationId
+            : null,
+          registry: registryView,
+        });
+      } catch (err) {
+        const code = (err as { code?: string } | null)?.code;
+        if (code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+          return sendApiError(
+            res,
+            422,
+            'PLUGIN_SNAPSHOT_FK_FAILED',
+            `Cannot create plugin snapshot: project "${req.body.projectId}" or conversation "${req.body.conversationId ?? ''}" not found in daemon database.`,
+          );
+        }
+        console.error('[plugins] resolvePluginSnapshot threw', err);
+        return sendApiError(res, 500, 'INTERNAL', String(err));
+      }
       if (resolved && !resolved.ok) {
         if (!explicitPlugin) {
           console.warn(
@@ -9953,6 +9968,33 @@ export async function startServer({
     validation: validationDeps,
     lifecycle: { isDaemonShuttingDown: () => daemonShuttingDown },
 
+  });
+
+  // Global Express error middleware. Any route handler that throws
+  // (sync, or rejects an async handler) lands here instead of crashing
+  // the daemon process. Foreign-key violations surface as a clean 422;
+  // everything else as a logged 500. Must come AFTER all route
+  // registrations, and must use the 4-arity signature so Express
+  // recognises it as an error handler.
+  app.use((err: unknown, req, res, _next) => {
+    const code = (err as { code?: string } | null)?.code;
+    if (code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+      console.warn(
+        `[daemon] FK violation on ${req.method} ${req.path}: ${String((err as Error)?.message ?? err)}`,
+      );
+      return sendApiError(
+        res,
+        422,
+        'FOREIGN_KEY_VIOLATION',
+        'Request references a row that does not exist in this daemon\'s database (project, conversation, run, or snapshot id).',
+      );
+    }
+    console.error(
+      `[daemon] unhandled error on ${req.method} ${req.path}:`,
+      err,
+    );
+    if (res.headersSent) return;
+    return sendApiError(res, 500, 'INTERNAL', String((err as Error)?.message ?? err));
   });
 
   // Wait for `listen` to bind so callers always see the resolved URL —

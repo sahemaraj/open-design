@@ -242,6 +242,8 @@ export interface Dict {
   'settings.skillsSaving': string;
   'settings.skillsFiles': string;
   'settings.skillsNoFiles': string;
+  'settings.skillsNameRequired': string;
+  'settings.skillsBodyRequired': string;
   'settings.designSystems': string;
   'settings.designSystemsHint': string;
   'settings.librarySkills': string;
@@ -1073,6 +1075,9 @@ export interface Dict {
   'designFiles.refresh': string;
   'designFiles.delete': string;
   'designFiles.searchPlaceholder': string;
+  'designFiles.searchNoMatches': string;
+  'designFiles.searchClearAria': string;
+  'designFiles.searchClear': string;
   'designFiles.up': string;
   'designFiles.back': string;
   'designFiles.crumbs': string;
